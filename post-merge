@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+# Sets the correct ownership and permissions in a project after a git merge event
+import sys, os, subprocess
+
+defaultOwner = "git"
+defaultGroup = "www-data"
+defaultDirectoryPermission = "755"
+defaultFilePermission = "644"
+apacheWritableFileName = ".gitserverwritable"
+apacheWritePermission = "775"
+pathSeparator = os.sep
+relativeGitHookDir = ".git/hooks/"
+scriptHomeDir = "/var/www"
+currentDir = os.getcwd()
+
+# Get absolute path to current directory
+env = os.environ
+
+# check script is running under /var/www/ to not cause major system issues
+if(currentDir.find(scriptHomeDir) < 0):
+        raise Exception("Error: please run this script under "+scriptHomeDir)
+
+# check .apachewritable file exists
+try:
+        f = open(currentDir+pathSeparator+apacheWritableFileName, 'r')
+except Exception:
+         print "Error: cannot open "+apacheWritableFileName
+else:
+        #become root for the ease of running other shell commands.
+        subprocess.call(["sudo", "echo", "Running post-merge script: correcting ownership and permissions"])
+
+        #set permissions for all directories
+        subprocess.call("find "+currentDir+" -type d -exec chmod "+defaultDirectoryPermission+" {} \;", shell=True)
+
+        #set permissions for all files
+        subprocess.call("find "+currentDir+" -type f -exec chmod "+defaultFilePermission+" {} \;", shell=True)
+
+        #make git hooks executable
+        proessCode = subprocess.call(["sudo", "chmod", "-R", "u+x", currentDir+pathSeparator+relativeGitHookDir])
+
+        if proessCode > 0:
+                sys.exit();
+
+        # Set ownership for all directories and files in given path
+        proessCode = subprocess.call(["sudo", "chown", "-R", defaultOwner+":"+defaultGroup, currentDir])
+
+        if proessCode > 0:
+                sys.exit();
+
+        # parse .apachewritable file it follows the style of gitignore
+        for line in f:
+                processCode = 0;
+                cleanLine = line.strip(' \t\n\r')
+                if len(cleanLine) < 1 or cleanLine[0] == '#':
+                        # ignore comment line
+                        continue
+                else:
+                        # set permission to directories
+                        proessCode = subprocess.call(["sudo", "chmod", apacheWritePermission, currentDir+pathSeparator+cleanLine])
