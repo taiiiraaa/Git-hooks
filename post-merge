@@ -37,13 +37,13 @@ else:
         subprocess.call("find "+currentDir+" -type f -exec chmod "+defaultFilePermission+" {} \;", shell=True)
 
         #make git hooks executable
-        proessCode = subprocess.call(["sudo", "chmod", "-R", "u+x", currentDir+pathSeparator+relativeGitHookDir])
+        proessCode = subprocess.call(["chmod", "-R", "u+x", currentDir+pathSeparator+relativeGitHookDir])
 
         if proessCode > 0:
                 sys.exit();
 
         # Set ownership for all directories and files in given path
-        proessCode = subprocess.call(["sudo", "chown", "-R", defaultOwner+":"+defaultGroup, currentDir])
+        proessCode = subprocess.call(["chown", "-R", defaultOwner+":"+defaultGroup, currentDir])
 
         if proessCode > 0:
                 sys.exit();
@@ -57,4 +57,4 @@ else:
                         continue
                 else:
                         # set permission to directories
-                        proessCode = subprocess.call(["sudo", "chmod", apacheWritePermission, currentDir+pathSeparator+cleanLine])
+                        proessCode = subprocess.call(["chmod", apacheWritePermission, currentDir+pathSeparator+cleanLine])
