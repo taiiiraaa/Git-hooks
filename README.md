@@ -1,4 +1,4 @@
 Git-hooks
 =========
 
-post-merge : little script to set directory and file ownership and permissions. 
+post-merge : script to set directory, file ownership and permissions. 
